@@ -6,399 +6,357 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Gym Tracker" />
+  <meta name="apple-mobile-web-app-title" content="Gym" />
   <meta name="theme-color" content="#0a0a0a" />
   <title>Gym Tracker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; background: #0a0a0a; color: #fff; font-family: 'DM Sans', sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; background: #0a0a0a; color: #fff; font-family: 'DM Sans', sans-serif; overscroll-behavior: none; }
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-    input[type=number] { -moz-appearance: textfield; }
-    ::-webkit-scrollbar { width: 3px; height: 3px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
-    #root { min-height: 100vh; }
-
-```
-.check-btn { transition: all 0.15s ease; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
-.check-btn:active { transform: scale(0.88); }
-.day-tab { transition: all 0.15s ease; border: none; cursor: pointer; white-space: nowrap; flex-shrink: 0; font-family: 'DM Mono', monospace; font-weight: 600; }
-.week-chip { transition: all 0.12s ease; cursor: pointer; white-space: nowrap; flex-shrink: 0; font-family: 'DM Mono', monospace; position: relative; }
-.ex-row { transition: background 0.15s ease; }
-.note-btn { background: none; border: none; cursor: pointer; transition: color 0.15s; display: block; width: 100%; text-align: left; font-family: 'DM Mono', monospace; }
-
-.sticky-header { position: sticky; top: 0; z-index: 50; background: #0a0a0a; border-bottom: 1px solid #161616; padding: 20px 20px 0; padding-top: calc(20px + env(safe-area-inset-top)); }
-.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0a0a0a; border-top: 1px solid #141414; padding: 11px 20px; padding-bottom: calc(11px + env(safe-area-inset-bottom)); display: flex; justify-content: space-between; align-items: center; }
-
-.scroll-x { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-.scroll-x::-webkit-scrollbar { display: none; }
-
-.grid-row { display: grid; grid-template-columns: 1fr 70px 90px 75px 32px; gap: 8px; align-items: center; }
-.grid-header { display: grid; grid-template-columns: 1fr 70px 90px 75px 32px; gap: 8px; }
-
-.progress-bar-track { height: 2px; background: #111; }
-.progress-bar-fill { height: 100%; border-radius: 0 1px 1px 0; transition: width 0.4s ease; }
-
-input[type=text], input[type=number] { -webkit-appearance: none; border-radius: 5px; }
-```
-
+    input[type=number], input[type=text] { -webkit-appearance: none; -moz-appearance: textfield; }
+    ::-webkit-scrollbar { display: none; }
+    button { font-family: 'DM Sans', sans-serif; }
+    .sticky { position: sticky; top: 0; z-index: 100; background: #0a0a0a; }
+    .scroll-x { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .btn-reset { background: none; border: none; cursor: pointer; padding: 0; }
+    .feel-btn { transition: all 0.15s; border: none; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; border-radius: 6px; padding: 4px 8px; }
+    .feel-btn:active { transform: scale(0.91); }
+    .check-circle { transition: all 0.15s; border: none; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+    .check-circle:active { transform: scale(0.88); }
+    .tab-btn { transition: all 0.15s; border: none; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .week-btn { transition: all 0.12s; border: none; cursor: pointer; white-space: nowrap; flex-shrink: 0; font-family: 'DM Mono', monospace; position: relative; }
+    .ex-card { transition: background 0.2s; }
+    .note-btn { background: none; border: none; cursor: pointer; display: block; width: 100%; text-align: left; font-family: 'DM Mono', monospace; }
   </style>
 </head>
 <body>
 <div id="root"></div>
-
 <script>
-const WEEKS = Array.from({ length: 12 }, (_, i) => `Week ${i + 1}`);
+const WEEKS = Array.from({ length: 12 }, (_, i) => i);
 
 const WARMUP = [
-  { id: "wu1", name: "Band Pull-Aparts", sets: 2, reps: "20" },
-  { id: "wu2", name: "Arm Circles", sets: 1, reps: "30s" },
-  { id: "wu3", name: "Shoulder Rolls", sets: 1, reps: "30s" },
+{ id: “wu1”, name: “Band Pull-Aparts”, sets: 2, reps: “20” },
+{ id: “wu2”, name: “Arm Circles”, sets: 1, reps: “30s” },
+{ id: “wu3”, name: “Shoulder Rolls”, sets: 1, reps: “30s” },
 ];
 
 const DAYS = [
-  {
-    id: "day1", label: "Day 1", title: "Push + Core", subtitle: "Shoulders · Triceps · Core", color: "#e8ff47",
-    exercises: [
-      { id: "d1e1", name: "Dumbbell Shoulder Press", sets: 3, reps: "10", startRange: "20–30" },
-      { id: "d1e2", name: "Lateral Raises", sets: 3, reps: "12", startRange: "10–15" },
-      { id: "d1e3", name: "Arnold Press", sets: 3, reps: "10", startRange: "20–25" },
-      { id: "d1e4", name: "Tricep Rope Pushdown", sets: 3, reps: "12", startRange: "30–50" },
-      { id: "d1e5", name: "Overhead Tricep Extension", sets: 3, reps: "10", startRange: "20–30" },
-      { id: "d1e6", name: "Plank", sets: 3, reps: "30–45s", startRange: "BW", isBodyweight: true },
-      { id: "d1e7", name: "Dead Bug", sets: 3, reps: "8/side", startRange: "BW", isBodyweight: true },
-    ],
-  },
-  {
-    id: "day2", label: "Day 2", title: "Pull + Biceps", subtitle: "Back · Biceps · Rear Delts", color: "#47c8ff",
-    exercises: [
-      { id: "d2e1", name: "Cable Row / DB Row", sets: 3, reps: "10", startRange: "50–70 / 30–40" },
-      { id: "d2e2", name: "Lat Pulldown", sets: 3, reps: "10", startRange: "50–70" },
-      { id: "d2e3", name: "Face Pulls", sets: 3, reps: "15", startRange: "20–30" },
-      { id: "d2e4", name: "Dumbbell Curl", sets: 3, reps: "10", startRange: "20–25" },
-      { id: "d2e5", name: "Hammer Curl", sets: 3, reps: "10", startRange: "20–25" },
-      { id: "d2e6", name: "Reverse Fly", sets: 3, reps: "12", startRange: "10–15" },
-    ],
-  },
-  {
-    id: "day4", label: "Day 4", title: "Posture + Core + Lower", subtitle: "Posterior Chain · Core · Stability", color: "#ff7847",
-    exercises: [
-      { id: "d4e1", name: "Goblet Squat", sets: 3, reps: "12", startRange: "25–35" },
-      { id: "d4e2", name: "Romanian Deadlift", sets: 3, reps: "10", startRange: "30–40" },
-      { id: "d4e3", name: "Hip Thrust", sets: 3, reps: "12", startRange: "BW", isBodyweight: true },
-      { id: "d4e4", name: "Band Pull-Aparts", sets: 3, reps: "20", startRange: "Band", isBodyweight: true },
-      { id: "d4e5", name: "Cable Woodchop", sets: 3, reps: "10/side", startRange: "20–30" },
-      { id: "d4e6", name: "Hanging Knee Raises / Ab Wheel", sets: 3, reps: "10", startRange: "BW", isBodyweight: true },
-    ],
-  },
-  {
-    id: "day5", label: "Day 5", title: "Full Upper + Core", subtitle: "Compounds · Biceps · Core", color: "#c847ff",
-    exercises: [
-      { id: "d5e1", name: "Dumbbell Row (heavy)", sets: 3, reps: "8", startRange: "35–45" },
-      { id: "d5e2", name: "Lat Pulldown / Pull-up", sets: 3, reps: "8", startRange: "55–75 / BW" },
-      { id: "d5e3", name: "Dumbbell Shoulder Press", sets: 3, reps: "8", startRange: "25–35" },
-      { id: "d5e4", name: "Incline Dumbbell Curl", sets: 3, reps: "10", startRange: "15–20" },
-      { id: "d5e5", name: "Lateral Raises", sets: 3, reps: "12", startRange: "10–15" },
-      { id: "d5e6", name: "Hollow Body Hold", sets: 3, reps: "20–30s", startRange: "BW", isBodyweight: true },
-      { id: "d5e7", name: "Leg Raises", sets: 3, reps: "10", startRange: "BW", isBodyweight: true },
-    ],
-  },
+{
+id: “day1”, label: “Day 1”, title: “Push + Core”,
+subtitle: “Shoulders · Triceps · Core”, color: “#e8ff47”,
+exercises: [
+{ id: “d1e1”, name: “Dumbbell Shoulder Press”, sets: 3, reps: “10”, startRange: “20–30” },
+{ id: “d1e2”, name: “Lateral Raises”, sets: 3, reps: “12”, startRange: “10–15” },
+{ id: “d1e3”, name: “Arnold Press”, sets: 3, reps: “10”, startRange: “20–25” },
+{ id: “d1e4”, name: “Tricep Rope Pushdown”, sets: 3, reps: “12”, startRange: “30–50” },
+{ id: “d1e5”, name: “Overhead Tricep Extension”, sets: 3, reps: “10”, startRange: “20–30” },
+{ id: “d1e6”, name: “Plank”, sets: 3, reps: “30–45s”, isBodyweight: true },
+{ id: “d1e7”, name: “Dead Bug”, sets: 3, reps: “8/side”, isBodyweight: true },
+],
+},
+{
+id: “day2”, label: “Day 2”, title: “Pull + Biceps”,
+subtitle: “Back · Biceps · Rear Delts”, color: “#47c8ff”,
+exercises: [
+{ id: “d2e1”, name: “Cable Row / DB Row”, sets: 3, reps: “10”, startRange: “50–70 / 30–40” },
+{ id: “d2e2”, name: “Lat Pulldown”, sets: 3, reps: “10”, startRange: “50–70” },
+{ id: “d2e3”, name: “Face Pulls”, sets: 3, reps: “15”, startRange: “20–30” },
+{ id: “d2e4”, name: “Dumbbell Curl”, sets: 3, reps: “10”, startRange: “20–25” },
+{ id: “d2e5”, name: “Hammer Curl”, sets: 3, reps: “10”, startRange: “20–25” },
+{ id: “d2e6”, name: “Reverse Fly”, sets: 3, reps: “12”, startRange: “10–15” },
+],
+},
+{
+id: “day4”, label: “Day 4”, title: “Posture + Core + Lower”,
+subtitle: “Posterior Chain · Core · Stability”, color: “#ff7847”,
+exercises: [
+{ id: “d4e1”, name: “Goblet Squat”, sets: 3, reps: “12”, startRange: “25–35” },
+{ id: “d4e2”, name: “Romanian Deadlift”, sets: 3, reps: “10”, startRange: “30–40” },
+{ id: “d4e3”, name: “Hip Thrust”, sets: 3, reps: “12”, isBodyweight: true },
+{ id: “d4e4”, name: “Band Pull-Aparts”, sets: 3, reps: “20”, isBodyweight: true },
+{ id: “d4e5”, name: “Cable Woodchop”, sets: 3, reps: “10/side”, startRange: “20–30” },
+{ id: “d4e6”, name: “Hanging Knee Raises / Ab Wheel”, sets: 3, reps: “10”, isBodyweight: true },
+],
+},
+{
+id: “day5”, label: “Day 5”, title: “Full Upper + Core”,
+subtitle: “Compounds · Biceps · Core”, color: “#c847ff”,
+exercises: [
+{ id: “d5e1”, name: “Dumbbell Row (heavy)”, sets: 3, reps: “8”, startRange: “35–45” },
+{ id: “d5e2”, name: “Lat Pulldown / Pull-up”, sets: 3, reps: “8”, startRange: “55–75 / BW” },
+{ id: “d5e3”, name: “Dumbbell Shoulder Press”, sets: 3, reps: “8”, startRange: “25–35” },
+{ id: “d5e4”, name: “Incline Dumbbell Curl”, sets: 3, reps: “10”, startRange: “15–20” },
+{ id: “d5e5”, name: “Lateral Raises”, sets: 3, reps: “12”, startRange: “10–15” },
+{ id: “d5e6”, name: “Hollow Body Hold”, sets: 3, reps: “20–30s”, isBodyweight: true },
+{ id: “d5e7”, name: “Leg Raises”, sets: 3, reps: “10”, isBodyweight: true },
+],
+},
 ];
 
-// --- State ---
-let state = {
-  selectedWeek: 0,
-  selectedDay: 0,
-  weights: {},
-  notes: {},
-  completed: {},
-  activeNote: null,
-  noteInput: "",
-  saving: false,
-};
-
-function loadFromStorage() {
-  try {
-    const raw = localStorage.getItem("gymtracker-v1");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      state.weights = parsed.weights || {};
-      state.notes = parsed.notes || {};
-      state.completed = parsed.completed || {};
-    }
-  } catch (_) {}
-}
+// ── Storage ──────────────────────────────────────────────────────────────────
+let db = {};
+try { db = JSON.parse(localStorage.getItem(‘gymtracker-v2’) || ‘{}’); } catch(_) {}
 
 let saveTimer = null;
+let isSaving = false;
+
 function scheduleSave() {
-  state.saving = true;
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    try {
-      localStorage.setItem("gymtracker-v1", JSON.stringify({
-        weights: state.weights,
-        notes: state.notes,
-        completed: state.completed,
-      }));
-    } catch (_) {}
-    state.saving = false;
-    render();
-  }, 600);
+isSaving = true;
+clearTimeout(saveTimer);
+saveTimer = setTimeout(() => {
+try { localStorage.setItem(‘gymtracker-v2’, JSON.stringify(db)); } catch(_) {}
+isSaving = false;
+render();
+}, 700);
 }
 
-function getKey(exId) {
-  return `${WEEKS[state.selectedWeek]}__${DAYS[state.selectedDay].id}__${exId}`;
+function getEntry(w, dayId, exId) {
+return (db[w] && db[w][dayId] && db[w][dayId][exId]) || {};
 }
 
-function getWeight(exId) { return state.weights[getKey(exId)] || ""; }
-function getNote(exId) { return state.notes[getKey(exId)] || ""; }
-function isDone(exId) { return !!state.completed[getKey(exId)]; }
-
-function setWeight(exId, val) {
-  state.weights[getKey(exId)] = val;
-  scheduleSave();
-  render();
-}
-function setNote(exId, val) {
-  state.notes[getKey(exId)] = val;
-  scheduleSave();
-  render();
-}
-function toggleDone(exId) {
-  state.completed[getKey(exId)] = !state.completed[getKey(exId)];
-  scheduleSave();
-  render();
+function setEntry(w, dayId, exId, patch) {
+if (!db[w]) db[w] = {};
+if (!db[w][dayId]) db[w][dayId] = {};
+db[w][dayId][exId] = { …getEntry(w, dayId, exId), …patch };
+isSaving = true;
+scheduleSave();
 }
 
-// --- Render ---
+function getSuggested(weekIdx, dayId, exId) {
+if (weekIdx === 0) return ‘’;
+const prev = getEntry(weekIdx - 1, dayId, exId);
+if (!prev.weight) return ‘’;
+const w = parseFloat(prev.weight);
+if (isNaN(w)) return ‘’;
+if (prev.feel === ‘easy’) return String(w + 5);
+if (prev.feel === ‘hard’) return String(Math.max(5, w - 5));
+return prev.weight; // good or null → same
+}
+
+// ── App State ────────────────────────────────────────────────────────────────
+let S = { weekIdx: 0, dayIdx: 0, activeNoteEx: null, noteInput: ‘’ };
+
+function setState(patch) { Object.assign(S, patch); render(); }
+
+// ── DOM Helpers ───────────────────────────────────────────────────────────────
+function h(tag, props, …kids) {
+const e = document.createElement(tag);
+for (const [k, v] of Object.entries(props || {})) {
+if (k === ‘style’) Object.assign(e.style, v);
+else if (k.startsWith(‘on’)) e.addEventListener(k.slice(2).toLowerCase(), v);
+else if (k === ‘cls’) e.className = v;
+else e.setAttribute(k, v);
+}
+for (const k of kids.flat(9)) {
+if (k == null || k === false) continue;
+e.appendChild(k instanceof Node ? k : document.createTextNode(String(k)));
+}
+return e;
+}
+function t(str) { return document.createTextNode(str); }
+
+// ── Render ────────────────────────────────────────────────────────────────────
 function render() {
-  const day = DAYS[state.selectedDay];
-  const week = WEEKS[state.selectedWeek];
-  const doneCount = day.exercises.filter(e => isDone(e.id)).length;
-  const allDone = doneCount === day.exercises.length;
-  const progress = (doneCount / day.exercises.length) * 100;
-
-  const root = document.getElementById("root");
-
-  root.innerHTML = `
-    <div style="min-height:100vh;background:#0a0a0a;color:#fff;font-family:'DM Sans',sans-serif;">
-
-      <!-- HEADER -->
-      <div class="sticky-header">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
-          <div>
-            <div style="font-size:10px;letter-spacing:0.18em;color:#3a3a3a;font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:5px;">Workout Log</div>
-            <div style="font-size:24px;font-weight:700;letter-spacing:-0.03em;line-height:1;color:#f0f0f0;">${day.title}</div>
-            <div style="font-size:12px;color:#555;margin-top:3px;">${day.subtitle}</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-            <div style="background:${allDone ? day.color : '#141414'};color:${allDone ? '#000' : '#444'};border-radius:20px;padding:5px 13px;font-size:11px;font-family:'DM Mono',monospace;font-weight:600;transition:all 0.25s ease;">
-              ${doneCount}/${day.exercises.length} done
-            </div>
-            <div style="font-size:10px;font-family:'DM Mono',monospace;color:${state.saving ? '#555' : '#2a2a2a'};">
-              ${state.saving ? 'saving...' : 'saved ✓'}
-            </div>
-          </div>
-        </div>
-
-        <!-- Day tabs -->
-        <div class="scroll-x" style="gap:6px;padding-bottom:14px;">
-          ${DAYS.map((d, i) => `
-            <button class="day-tab" onclick="selectDay(${i})" style="background:${state.selectedDay === i ? d.color : '#131313'};color:${state.selectedDay === i ? '#000' : '#555'};border-radius:7px;padding:7px 14px;font-size:11px;">
-              ${d.label}
-            </button>
-          `).join('')}
-        </div>
-      </div>
-
-      <!-- WEEK SELECTOR -->
-      <div style="padding:14px 20px 12px;border-bottom:1px solid #111;">
-        <div style="font-size:9px;color:#333;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:10px;">Week</div>
-        <div class="scroll-x" style="gap:5px;padding-bottom:2px;">
-          ${WEEKS.map((w, i) => {
-            const hasData = DAYS.some(d =>
-              d.exercises.some(e => state.weights[`${w}__${d.id}__${e.id}`] || state.completed[`${w}__${d.id}__${e.id}`])
-            );
-            const isSelected = state.selectedWeek === i;
-            return `
-              <button class="week-chip" onclick="selectWeek(${i})"
-                style="background:${isSelected ? '#fff' : '#111'};color:${isSelected ? '#000' : hasData ? '#666' : '#333'};border:1px solid ${isSelected ? '#fff' : hasData ? '#2a2a2a' : '#1a1a1a'};border-radius:5px;padding:4px 9px;font-size:10px;font-weight:${isSelected ? 700 : hasData ? 500 : 400};">
-                W${i + 1}${hasData && !isSelected ? `<span style="position:absolute;top:2px;right:2px;width:4px;height:4px;border-radius:50%;background:${day.color};display:block;"></span>` : ''}
-              </button>
-            `;
-          }).join('')}
-        </div>
-      </div>
-
-      <!-- PROGRESS BAR -->
-      <div class="progress-bar-track">
-        <div class="progress-bar-fill" style="width:${progress}%;background:${day.color};"></div>
-      </div>
-
-      <!-- EXERCISE LIST -->
-      <div style="padding-bottom:90px;">
-
-        <!-- WARMUP -->
-        <div style="padding:12px 20px 0;">
-          <div style="font-size:9px;color:#333;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
-            <span style="color:${day.color};">▸</span> Warmup — do this first
-          </div>
-          ${WARMUP.map(ex => {
-            const done = isDone(ex.id);
-            return `
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #111;">
-                <div style="display:flex;align-items:center;gap:10px;">
-                  <button class="check-btn" onclick="toggleDone('${ex.id}')"
-                    style="width:22px;height:22px;border-radius:50%;border:2px solid ${done ? day.color : '#222'};background:${done ? day.color : 'transparent'};color:${done ? '#000' : 'transparent'};font-size:10px;border:2px solid ${done ? day.color : '#222'};">✓</button>
-                  <span style="font-size:12px;color:${done ? '#444' : '#aaa'};text-decoration:${done ? 'line-through' : 'none'};">${ex.name}</span>
-                </div>
-                <span style="font-size:10px;font-family:'DM Mono',monospace;color:#333;">${ex.sets}×${ex.reps}</span>
-              </div>
-            `;
-          }).join('')}
-        </div>
-
-        <!-- MAIN WORK HEADER -->
-        <div class="grid-header" style="padding:14px 20px 10px;border-bottom:1px solid #0f0f0f;margin-top:8px;">
-          <div style="font-size:9px;color:#2e2e2e;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.12em;">
-            <span style="color:${day.color};">▸</span> Main Work
-          </div>
-          ${["Sets×Reps","Est. Range","Your Wt.",""].map(h => `
-            <div style="font-size:9px;color:#2e2e2e;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.12em;text-align:center;">${h}</div>
-          `).join('')}
-        </div>
-
-        <!-- EXERCISES -->
-        ${day.exercises.map(ex => {
-          const done = isDone(ex.id);
-          const noteVal = getNote(ex.id);
-          const noteKey = getKey(ex.id);
-          const isEditingNote = state.activeNote === noteKey;
-          const w = getWeight(ex.id);
-
-          return `
-            <div style="border-bottom:1px solid #0f0f0f;">
-              <div class="ex-row grid-row" style="padding:13px 20px;background:${done ? '#0d110a' : 'transparent'};">
-                <!-- Name -->
-                <div>
-                  <div style="font-size:13px;font-weight:500;color:${done ? '#444' : '#ddd'};text-decoration:${done ? 'line-through' : 'none'};line-height:1.35;">
-                    ${ex.name}
-                  </div>
-                  ${noteVal && !isEditingNote ? `
-                    <div style="margin-top:5px;display:inline-flex;align-items:center;gap:5px;background:#161616;border:1px solid #222;border-radius:20px;padding:2px 9px;font-size:10px;color:#555;font-family:'DM Mono',monospace;max-width:100%;">
-                      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${noteVal}</span>
-                      <button onclick="clearNote('${ex.id}')" style="background:none;border:none;color:#444;cursor:pointer;font-size:11px;padding:0;flex-shrink:0;">×</button>
-                    </div>
-                  ` : ''}
-                </div>
-                <!-- Sets x Reps -->
-                <div style="text-align:center;font-size:11px;font-family:'DM Mono',monospace;color:#444;">${ex.sets}×${ex.reps}</div>
-                <!-- Range -->
-                <div style="text-align:center;font-size:10px;font-family:'DM Mono',monospace;color:#3a3a3a;background:#0f0f0f;border-radius:5px;padding:4px 5px;">
-                  ${ex.startRange}${!ex.isBodyweight ? ' lbs' : ''}
-                </div>
-                <!-- Weight -->
-                <div style="display:flex;justify-content:center;">
-                  ${ex.isBodyweight
-                    ? `<div style="font-size:10px;color:#333;font-family:'DM Mono',monospace;padding:5px 8px;background:#0f0f0f;border-radius:5px;border:1px solid #1a1a1a;text-align:center;min-width:52px;">BW</div>`
-                    : `<input type="number" value="${w}" placeholder="—" oninput="setWeight('${ex.id}', this.value)"
-                        style="width:52px;background:#0f0f0f;border:1px solid ${w ? '#2a2a2a' : '#1a1a1a'};border-radius:5px;color:${w ? '#fff' : '#333'};font-size:12px;font-family:'DM Mono',monospace;padding:4px 6px;outline:none;text-align:center;" />`
-                  }
-                </div>
-                <!-- Check -->
-                <button class="check-btn" onclick="toggleDone('${ex.id}')"
-                  style="width:26px;height:26px;border-radius:50%;border:2px solid ${done ? day.color : '#222'};background:${done ? day.color : 'transparent'};color:${done ? '#000' : 'transparent'};font-size:12px;">✓</button>
-              </div>
-
-              <!-- Note -->
-              ${isEditingNote ? `
-                <div style="display:flex;gap:8px;padding:8px 20px 10px;background:${done ? '#0d110a' : '#0c0c0c'};">
-                  <input type="text" id="note-input-${ex.id}" value="${state.noteInput.replace(/"/g, '&quot;')}" placeholder="too heavy, drop 5 lbs, form off..."
-                    oninput="updateNoteInput(this.value)"
-                    onkeydown="handleNoteKey(event, '${ex.id}')"
-                    style="flex:1;background:#111;border:1px solid #2a2a2a;border-radius:6px;color:#bbb;font-size:12px;font-family:'DM Mono',monospace;padding:6px 10px;outline:none;" />
-                  <button onclick="saveNote('${ex.id}')" style="background:${day.color};color:#000;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Mono',monospace;">Save</button>
-                  <button onclick="cancelNote()" style="background:transparent;color:#444;border:1px solid #1e1e1e;border-radius:6px;padding:6px 10px;font-size:11px;cursor:pointer;">✕</button>
-                </div>
-              ` : `
-                <button class="note-btn" onclick="startNote('${ex.id}', '${noteKey}')"
-                  style="padding:5px 20px 7px;color:${noteVal ? '#444' : '#252525'};font-size:10px;">
-                  ${noteVal ? '✎ edit note' : '+ note'}
-                </button>
-              `}
-            </div>
-          `;
-        }).join('')}
-      </div>
-
-      <!-- BOTTOM BAR -->
-      <div class="bottom-bar">
-        <span style="font-size:10px;color:#333;font-family:'DM Mono',monospace;">○ mark done · + note adjustments</span>
-        <span style="font-size:10px;font-family:'DM Mono',monospace;color:${day.color};font-weight:600;">${week}</span>
-      </div>
-    </div>
-  `;
-
-  // Focus note input if editing
-  if (state.activeNote) {
-    const inputs = document.querySelectorAll('[id^="note-input-"]');
-    if (inputs.length) {
-      const inp = inputs[0];
-      inp.focus();
-      inp.setSelectionRange(inp.value.length, inp.value.length);
-    }
-  }
+const root = document.getElementById(‘root’);
+const next = buildApp();
+if (root.firstChild) root.replaceChild(next, root.firstChild);
+else root.appendChild(next);
+if (S.activeNoteEx) {
+const inp = document.getElementById(‘note-inp’);
+if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+}
 }
 
-// --- Event handlers (globals) ---
-function selectDay(i) { state.selectedDay = i; state.activeNote = null; render(); }
-function selectWeek(i) { state.selectedWeek = i; state.activeNote = null; render(); }
-function toggleDone(exId) { toggleDone_(exId); }
-function toggleDone_(exId) {
-  state.completed[getKey(exId)] = !state.completed[getKey(exId)];
-  scheduleSave();
-  render();
-}
-function setWeight(exId, val) {
-  state.weights[getKey(exId)] = val;
-  scheduleSave();
-  // Don't full re-render on every keystroke to avoid losing focus
-  const allDone = DAYS[state.selectedDay].exercises.every(e => isDone(e.id));
-  // just update save indicator
-}
-function clearNote(exId) {
-  state.notes[getKey(exId)] = "";
-  scheduleSave();
-  render();
-}
-function startNote(exId, noteKey) {
-  state.activeNote = noteKey;
-  state.noteInput = getNote(exId);
-  render();
-}
-function updateNoteInput(val) { state.noteInput = val; }
-function saveNote(exId) {
-  state.notes[getKey(exId)] = state.noteInput;
-  state.activeNote = null;
-  state.noteInput = "";
-  scheduleSave();
-  render();
-}
-function cancelNote() {
-  state.activeNote = null;
-  state.noteInput = "";
-  render();
-}
-function handleNoteKey(e, exId) {
-  if (e.key === "Enter") saveNote(exId);
-  if (e.key === "Escape") cancelNote();
+function buildApp() {
+const day = DAYS[S.dayIdx];
+const doneCount = day.exercises.filter(e => getEntry(S.weekIdx, day.id, e.id).done).length;
+const allDone = doneCount === day.exercises.length;
+const pct = (doneCount / day.exercises.length) * 100;
+const c = day.color;
+
+return h(‘div’, { style: { minHeight: ‘100vh’, background: ‘#0a0a0a’ } },
+
+```
+// ── HEADER
+h('div', { cls: 'sticky', style: { borderBottom: '1px solid #161616', padding: `calc(env(safe-area-inset-top,20px) + 16px) 20px 0` } },
+  h('div', { style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '14px' } },
+    h('div', {},
+      h('div', { style: { fontSize: '10px', letterSpacing: '0.18em', color: '#333', fontFamily: "'DM Mono',monospace", textTransform: 'uppercase', marginBottom: '4px' } }, 'Workout Log'),
+      h('div', { style: { fontSize: '23px', fontWeight: '700', letterSpacing: '-0.03em', lineHeight: '1', color: '#f0f0f0' } }, day.title),
+      h('div', { style: { fontSize: '12px', color: '#555', marginTop: '3px' } }, day.subtitle),
+    ),
+    h('div', { style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' } },
+      h('div', { style: { background: allDone ? c : '#141414', color: allDone ? '#000' : '#444', borderRadius: '20px', padding: '5px 12px', fontSize: '11px', fontFamily: "'DM Mono',monospace", fontWeight: '600' } },
+        `${doneCount}/${day.exercises.length} done`),
+      h('div', { style: { fontSize: '10px', fontFamily: "'DM Mono',monospace", color: isSaving ? '#555' : '#222' } }, isSaving ? 'saving...' : 'saved ✓'),
+    ),
+  ),
+  // Day tabs
+  h('div', { cls: 'scroll-x', style: { gap: '6px', paddingBottom: '14px' } },
+    ...DAYS.map((d, i) => h('button', {
+      cls: 'tab-btn',
+      style: { background: S.dayIdx === i ? d.color : '#131313', color: S.dayIdx === i ? '#000' : '#555', borderRadius: '7px', padding: '7px 14px', fontSize: '11px', fontWeight: '600', fontFamily: "'DM Mono',monospace" },
+      onClick: () => setState({ dayIdx: i, activeNoteEx: null }),
+    }, d.label))
+  ),
+),
+
+// ── WEEK BAR
+h('div', { style: { padding: '12px 20px', borderBottom: '1px solid #111' } },
+  h('div', { style: { fontSize: '9px', color: '#333', fontFamily: "'DM Mono',monospace", textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '9px' } }, 'Week'),
+  h('div', { cls: 'scroll-x', style: { gap: '5px' } },
+    ...WEEKS.map(i => {
+      const sel = S.weekIdx === i;
+      const has = DAYS.some(d => d.exercises.some(e => { const en = getEntry(i, d.id, e.id); return en.weight || en.done; }));
+      return h('button', {
+        cls: 'week-btn',
+        style: { background: sel ? '#fff' : '#111', color: sel ? '#000' : has ? '#777' : '#333', border: `1px solid ${sel ? '#fff' : has ? '#2a2a2a' : '#1a1a1a'}`, borderRadius: '5px', padding: '4px 10px', fontSize: '10px', fontWeight: sel ? '700' : has ? '500' : '400' },
+        onClick: () => setState({ weekIdx: i, activeNoteEx: null }),
+      },
+        `W${i + 1}`,
+        has && !sel ? h('span', { style: { position: 'absolute', top: '3px', right: '3px', width: '4px', height: '4px', borderRadius: '50%', background: c, display: 'block' } }) : null,
+      );
+    })
+  ),
+),
+
+// ── PROGRESS BAR
+h('div', { style: { height: '2px', background: '#111' } },
+  h('div', { style: { height: '100%', width: `${pct}%`, background: c, borderRadius: '0 1px 1px 0', transition: 'width 0.4s ease' } })
+),
+
+// ── EXERCISE LIST
+h('div', { style: { paddingBottom: '90px' } },
+
+  // Warmup
+  h('div', { style: { padding: '12px 20px 4px', borderBottom: '1px solid #111' } },
+    h('div', { style: { fontSize: '9px', color: '#333', fontFamily: "'DM Mono',monospace", textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' } },
+      h('span', { style: { color: c } }, '▸'), ' Warmup — do this first'
+    ),
+    ...WARMUP.map(ex => {
+      const done = !!getEntry(S.weekIdx, day.id, ex.id).done;
+      return h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #0f0f0f' } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: '10px' } },
+          h('button', {
+            cls: 'check-circle',
+            style: { width: '22px', height: '22px', border: `2px solid ${done ? c : '#222'}`, background: done ? c : 'transparent', color: done ? '#000' : 'transparent', fontSize: '10px' },
+            onClick: () => { setEntry(S.weekIdx, day.id, ex.id, { done: !done }); render(); },
+          }, '✓'),
+          h('span', { style: { fontSize: '12px', color: done ? '#444' : '#aaa', textDecoration: done ? 'line-through' : 'none' } }, ex.name),
+        ),
+        h('span', { style: { fontSize: '10px', fontFamily: "'DM Mono',monospace", color: '#333' } }, `${ex.sets}×${ex.reps}`),
+      );
+    }),
+    h('div', { style: { height: '4px' } }),
+  ),
+
+  // Column headers
+  h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 64px 60px 60px 28px', gap: '6px', padding: '12px 20px 8px', borderBottom: '1px solid #0f0f0f' } },
+    h('div', { style: { fontSize: '9px', color: '#2a2a2a', fontFamily: "'DM Mono',monospace", textTransform: 'uppercase', letterSpacing: '0.1em' } },
+      h('span', { style: { color: c } }, '▸'), ' Main Work'
+    ),
+    ...['Sets×Reps', 'Target', 'Actual', ''].map(label =>
+      h('div', { style: { fontSize: '9px', color: '#2a2a2a', fontFamily: "'DM Mono',monospace", textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'center' } }, label)
+    ),
+  ),
+
+  // Exercises
+  ...day.exercises.map(ex => {
+    const entry = getEntry(S.weekIdx, day.id, ex.id);
+    const done = !!entry.done;
+    const feel = entry.feel || null;
+    const weight = entry.weight || '';
+    const note = entry.note || '';
+    const suggested = ex.isBodyweight ? '' : getSuggested(S.weekIdx, day.id, ex.id);
+    const isEditingNote = S.activeNoteEx === ex.id;
+    const targetText = ex.isBodyweight ? 'BW' : (suggested ? `${suggested}` : (ex.startRange || '—'));
+    const targetIsNew = !!suggested && !ex.isBodyweight;
+
+    return h('div', { cls: 'ex-card', style: { background: done ? '#0d110a' : 'transparent', borderBottom: '1px solid #0f0f0f' } },
+      // Main row
+      h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 64px 60px 60px 28px', gap: '6px', padding: '12px 20px', alignItems: 'center' } },
+        // Name + feel
+        h('div', {},
+          h('div', { style: { fontSize: '13px', fontWeight: '500', color: done ? '#444' : '#ddd', textDecoration: done ? 'line-through' : 'none', lineHeight: '1.3', marginBottom: ex.isBodyweight ? '0' : '6px' } }, ex.name),
+          !ex.isBodyweight ? h('div', { style: { display: 'flex', gap: '4px', flexWrap: 'wrap' } },
+            ...['easy','good','hard'].map(f => {
+              const active = feel === f;
+              const fColors = { easy: '#e8ff47', good: '#47c8ff', hard: '#ff7847' };
+              const fLabels = { easy: 'Easy', good: 'Good', hard: 'Hard' };
+              return h('button', {
+                cls: 'feel-btn',
+                style: { background: active ? fColors[f] : '#141414', color: active ? '#000' : '#444' },
+                onClick: () => { setEntry(S.weekIdx, day.id, ex.id, { feel: active ? null : f }); render(); },
+              }, fLabels[f]);
+            })
+          ) : null,
+          note && !isEditingNote ? h('div', { style: { marginTop: '5px', display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#161616', border: '1px solid #222', borderRadius: '20px', padding: '2px 9px', fontSize: '10px', color: '#555', fontFamily: "'DM Mono',monospace" } },
+            h('span', { style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' } }, note),
+            h('button', { cls: 'btn-reset', style: { color: '#444', fontSize: '12px', flexShrink: '0' }, onClick: () => { setEntry(S.weekIdx, day.id, ex.id, { note: '' }); render(); } }, '×'),
+          ) : null,
+        ),
+        // Sets × Reps
+        h('div', { style: { textAlign: 'center', fontSize: '11px', fontFamily: "'DM Mono',monospace", color: '#444' } }, `${ex.sets}×${ex.reps}`),
+        // Target
+        h('div', { style: { textAlign: 'center', fontSize: '10px', fontFamily: "'DM Mono',monospace", color: targetIsNew ? c : '#333', background: '#0f0f0f', borderRadius: '5px', padding: '4px 3px', fontWeight: targetIsNew ? '700' : '400' } },
+          targetText, !ex.isBodyweight && targetText !== 'BW' && targetText !== '—' ? h('span', { style: { fontSize: '8px', color: targetIsNew ? c : '#2a2a2a' } }, ' lbs') : null,
+        ),
+        // Weight input
+        h('div', { style: { display: 'flex', justifyContent: 'center' } },
+          ex.isBodyweight
+            ? h('div', { style: { fontSize: '10px', color: '#333', fontFamily: "'DM Mono',monospace", padding: '5px 4px', background: '#0f0f0f', borderRadius: '5px', border: '1px solid #1a1a1a', textAlign: 'center', minWidth: '52px' } }, 'BW')
+            : h('input', {
+                type: 'number', value: weight, placeholder: suggested || '—',
+                style: { width: '54px', background: '#0f0f0f', border: `1px solid ${weight ? '#2a2a2a' : '#1a1a1a'}`, borderRadius: '5px', color: weight ? '#fff' : '#444', fontSize: '12px', fontFamily: "'DM Mono',monospace", padding: '5px 4px', outline: 'none', textAlign: 'center' },
+                onInput: (e) => { db[S.weekIdx] = db[S.weekIdx] || {}; db[S.weekIdx][day.id] = db[S.weekIdx][day.id] || {}; db[S.weekIdx][day.id][ex.id] = { ...getEntry(S.weekIdx, day.id, ex.id), weight: e.target.value }; isSaving = true; scheduleSave(); },
+              })
+        ),
+        // Check
+        h('button', {
+          cls: 'check-circle',
+          style: { width: '26px', height: '26px', border: `2px solid ${done ? c : '#222'}`, background: done ? c : 'transparent', color: done ? '#000' : 'transparent', fontSize: '12px' },
+          onClick: () => { setEntry(S.weekIdx, day.id, ex.id, { done: !done }); render(); },
+        }, '✓'),
+      ),
+
+      // Note
+      isEditingNote
+        ? h('div', { style: { display: 'flex', gap: '8px', padding: '6px 20px 10px', background: done ? '#0d110a' : '#0c0c0c' } },
+            h('input', {
+              type: 'text', id: 'note-inp', value: S.noteInput,
+              placeholder: 'too heavy, drop 5 lbs, form off...',
+              style: { flex: '1', background: '#111', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#bbb', fontSize: '12px', fontFamily: "'DM Mono',monospace", padding: '6px 10px', outline: 'none' },
+              onInput: (e) => { S.noteInput = e.target.value; },
+              onKeydown: (e) => {
+                if (e.key === 'Enter') { setEntry(S.weekIdx, day.id, ex.id, { note: S.noteInput }); setState({ activeNoteEx: null, noteInput: '' }); }
+                if (e.key === 'Escape') setState({ activeNoteEx: null, noteInput: '' });
+              },
+            }),
+            h('button', { style: { background: c, color: '#000', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '11px', fontWeight: '700', cursor: 'pointer', fontFamily: "'DM Mono',monospace", whiteSpace: 'nowrap' }, onClick: () => { setEntry(S.weekIdx, day.id, ex.id, { note: S.noteInput }); setState({ activeNoteEx: null, noteInput: '' }); } }, 'Save'),
+            h('button', { style: { background: 'transparent', color: '#444', border: '1px solid #1e1e1e', borderRadius: '6px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }, onClick: () => setState({ activeNoteEx: null, noteInput: '' }) }, '✕'),
+          )
+        : h('button', {
+            cls: 'note-btn',
+            style: { padding: '5px 20px 8px', color: note ? '#444' : '#222', fontSize: '10px', cursor: 'pointer' },
+            onClick: () => setState({ activeNoteEx: ex.id, noteInput: note }),
+          }, note ? '✎ edit note' : '+ note'),
+    );
+  }),
+),
+
+// ── BOTTOM BAR
+h('div', { style: { position: 'fixed', bottom: '0', left: '0', right: '0', background: '#0a0a0a', borderTop: '1px solid #141414', padding: `11px 20px calc(env(safe-area-inset-bottom,0px) + 11px)`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+  h('span', { style: { fontSize: '10px', color: '#2e2e2e', fontFamily: "'DM Mono',monospace" } }, 'Rate sets · weights auto-adjust next week'),
+  h('span', { style: { fontSize: '10px', fontFamily: "'DM Mono',monospace", color: c, fontWeight: '600' } }, `W${S.weekIdx + 1}`),
+),
+```
+
+);
 }
 
-// --- Boot ---
-loadFromStorage();
 render();
 </script>
 
